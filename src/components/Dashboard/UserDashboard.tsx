@@ -114,34 +114,14 @@ export const UserDashboard: React.FC = () => {
                 : 'Connect your Codeforces account to participate in the leaderboard'
               }
             </p>
+            <p className="text-gray-600">
+              {userData?.leetcodeHandle 
+                ? `LeetCode: ${userData.leetcodeHandle}`
+                : 'Connect your LeetCode account'
+              }
+            </p>
           </div>
 
-          <form onSubmit={handleSubmitHandle} className="space-y-6">
-            <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Codeforces Handle
-              </label>
-              <input
-                type="text"
-                value={codeforcesHandle}
-                onChange={(e) => setCodeforcesHandle(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your Codeforces handle"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Your Codeforces username (e.g., tourist, Petr)
-              </p>
-              <p className="text-gray-600">
-                {userData?.leetcodeHandle 
-                  ? `LeetCode: ${userData.leetcodeHandle}`
-                  : 'Connect your LeetCode account'
-                }
-              </p>
-            </div>
-
-            {error && (
           <div className="space-y-8">
             <form onSubmit={handleSubmitHandle} className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Codeforces Account</h3>
@@ -233,40 +213,6 @@ export const UserDashboard: React.FC = () => {
               <li>• Your statistics will be automatically fetched and combined</li>
               <li>• Only the admin can view the leaderboard rankings</li>
               <li>• Combined problem count includes both platforms</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-                <p className="text-red-700 text-sm">{error}</p>
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <p className="text-green-700 text-sm">{success}</p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? 'Updating...' : 'Update Codeforces Handle'}
-            </button>
-            </>
-          </form>
-
-          <div className="mt-8 p-6 bg-blue-50 rounded-lg">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">How it works</h3>
-            <ul className="text-blue-800 space-y-1 text-sm">
-              <li>• Enter your Codeforces handle to connect your account</li>
-              <li>• Your statistics will be automatically fetched and updated</li>
-              <li>• Only the admin can view the leaderboard rankings</li>
-              <li>• Your data includes solved problems, ratings, and contest performance</li>
             </ul>
           </div>
         </div>
