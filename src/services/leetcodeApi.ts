@@ -1,4 +1,4 @@
-const LEETCODE_API_URL = 'https://leetcode.com/graphql';
+const LEETCODE_PROXY_URL = 'https://alfa-leetcode-api.onrender.com';
 
 export interface LeetCodeStats {
   username: string;
@@ -11,115 +11,58 @@ export interface LeetCodeStats {
 }
 
 export class LeetCodeAPI {
-  private static async makeGraphQLRequest(query: string, variables: any): Promise<any> {
+  static async getUserStats(username: string): Promise<LeetCodeStats> {
     try {
-      const response = await fetch(LEETCODE_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        },
-        body: JSON.stringify({
-          query,
-          variables
-        })
-      });
-
+      const response = await fetch(`${LEETCODE_PROXY_URL}/${username}/solved`);
+      
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`User ${username} not found on LeetCode`);
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
       
-      if (data.errors) {
-        throw new Error(data.errors[0].message || 'GraphQL query failed');
-      }
-      
-      return data.data;
-    } catch (error) {
-      throw new Error(`Failed to fetch LeetCode data: ${error}`);
-    }
-  }
-
-  static async getUserStats(username: string): Promise<LeetCodeStats> {
-    const query = `
-      query getUserProfile($username: String!) {
-        allQuestionsCount {
-          difficulty
-          count
-        }
-        matchedUser(username: $username) {
-          username
-          contributions {
-            points
-            questionCount
-            testcaseCount
-          }
-          profile {
-            realName
-            ranking
-            reputation
-          }
-          submitStats {
-            totalSubmissionNum {
-              difficulty
-              count
-              submissions
-            }
-            acSubmissionNum {
-              difficulty
-              count
-              submissions
-            }
-          }
-        }
-      }
-    `;
-
-    try {
-      const data = await this.makeGraphQLRequest(query, { username });
-      
-      if (!data.matchedUser) {
-        throw new Error(`User ${username} not found on LeetCode`);
+      // Handle different response formats from the proxy API
+      if (data.errors || !data.solvedProblem) {
+        throw new Error(`User ${username} not found or data unavailable`);
       }
 
-      const user = data.matchedUser;
-      const acSubmissions = user.submitStats.acSubmissionNum;
+      const solvedData = data.solvedProblem;
       
-      // Calculate total solved problems
-      let totalSolved = 0;
-      let easySolved = 0;
-      let mediumSolved = 0;
-      let hardSolved = 0;
-
-      acSubmissions.forEach((submission: any) => {
-        const count = submission.count;
-        totalSolved += count;
-        
-        switch (submission.difficulty) {
-          case 'Easy':
-            easySolved = count;
-            break;
-          case 'Medium':
-            mediumSolved = count;
-            break;
-          case 'Hard':
-            hardSolved = count;
-            break;
-        }
-      });
-
       return {
-        username: user.username,
-        totalSolved,
-        easySolved,
-        mediumSolved,
-        hardSolved,
-        ranking: user.profile?.ranking || 0,
-        reputation: user.profile?.reputation || 0
+        username: username,
+        totalSolved: solvedData.solvedProblem || 0,
+        easySolved: solvedData.easySolved || 0,
+        mediumSolved: solvedData.mediumSolved || 0,
+        hardSolved: solvedData.hardSolved || 0,
+        ranking: data.ranking || 0,
+        reputation: 0 // Not available in this API
       };
     } catch (error) {
-      throw new Error(`Failed to fetch LeetCode stats for ${username}: ${error}`);
+      // Fallback to alternative proxy if the first one fails
+      try {
+        const fallbackResponse = await fetch(`https://leetcode-stats-api.herokuapp.com/${username}`);
+        
+        if (!fallbackResponse.ok) {
+          throw new Error(`User ${username} not found on LeetCode`);
+        }
+
+        const fallbackData = await fallbackResponse.json();
+        
+        return {
+          username: username,
+          totalSolved: fallbackData.totalSolved || 0,
+          easySolved: fallbackData.easySolved || 0,
+          mediumSolved: fallbackData.mediumSolved || 0,
+          hardSolved: fallbackData.hardSolved || 0,
+          ranking: fallbackData.ranking || 0,
+          reputation: 0
+        };
+      } catch (fallbackError) {
+        throw new Error(`Failed to fetch LeetCode stats for ${username}. Please verify the username is correct.`);
+      }
     }
   }
 }
