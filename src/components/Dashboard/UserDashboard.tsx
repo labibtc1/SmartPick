@@ -117,6 +117,7 @@ export const UserDashboard: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmitHandle} className="space-y-6">
+            <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Codeforces Handle
@@ -256,6 +257,7 @@ export const UserDashboard: React.FC = () => {
             >
               {loading ? 'Updating...' : 'Update Codeforces Handle'}
             </button>
+            </>
           </form>
 
           <div className="mt-8 p-6 bg-blue-50 rounded-lg">
