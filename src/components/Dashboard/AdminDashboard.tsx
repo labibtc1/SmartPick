@@ -4,7 +4,7 @@ import { FirebaseService } from '../../services/firebaseService';
 import { UserStats } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 
-type SortField = 'problemsSolved' | 'maxRating' | 'bestRank' | 'averageRating';
+type SortField = 'problemsSolved' | 'totalProblemsSolved' | 'maxRating' | 'bestRank' | 'averageRating';
 type SortOrder = 'asc' | 'desc';
 
 export const AdminDashboard: React.FC = () => {
@@ -48,6 +48,10 @@ export const AdminDashboard: React.FC = () => {
       case 'problemsSolved':
         aValue = a.problemsSolved;
         bValue = b.problemsSolved;
+        break;
+      case 'totalProblemsSolved':
+        aValue = a.totalProblemsSolved;
+        bValue = b.totalProblemsSolved;
         break;
       case 'maxRating':
         aValue = a.maxRating;
@@ -171,7 +175,16 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleSort('problemsSolved')}
                   >
                     <div className="flex items-center">
-                      Problems Solved
+                      CF Problems
+                      <ArrowUpDown className="w-4 h-4 ml-1" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('totalProblemsSolved')}
+                  >
+                    <div className="flex items-center">
+                      Total Problems
                       <ArrowUpDown className="w-4 h-4 ml-1" />
                     </div>
                   </th>
@@ -214,7 +227,12 @@ export const AdminDashboard: React.FC = () => {
                       {index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{stat.handle}</div>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium text-gray-900">CF: {stat.handle}</div>
+                        {stat.leetcodeHandle && (
+                          <div className="text-sm text-orange-600">LC: {stat.leetcodeHandle}</div>
+                        )}
+                      </div>
                       <div className={`text-sm ${getRankColor(stat.maxRank)}`}>
                         {stat.maxRank}
                       </div>
@@ -224,6 +242,14 @@ export const AdminDashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {stat.problemsSolved}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 font-medium">{stat.totalProblemsSolved}</div>
+                      {stat.leetcodeProblemsSolved > 0 && (
+                        <div className="text-xs text-gray-500">
+                          CF: {stat.problemsSolved} + LC: {stat.leetcodeProblemsSolved}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {stat.maxRating}
@@ -246,7 +272,7 @@ export const AdminDashboard: React.FC = () => {
           {userStats.length === 0 && (
             <div className="text-center py-12">
               <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No users have submitted their Codeforces handles yet.</p>
+              <p className="text-gray-500">No users have submitted their handles yet.</p>
             </div>
           )}
         </div>

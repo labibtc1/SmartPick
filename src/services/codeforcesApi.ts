@@ -63,9 +63,12 @@ export class CodeforcesAPI {
       return {
         handle,
         email,
+        leetcodeHandle: undefined,
         maxRating: userInfo.maxRating || 0,
         maxRank: userInfo.maxRank || 'Unrated',
         problemsSolved: solvedProblems.size,
+        leetcodeProblemsSolved: 0,
+        totalProblemsSolved: solvedProblems.size,
         averageRating,
         bestRank,
         currentRating: userInfo.rating || 0,

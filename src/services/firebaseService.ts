@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { FirebaseUser, UserStats } from '../types';
+import { LeetCodeAPI } from './leetcodeApi';
 
 export class FirebaseService {
   static async signUp(email: string, password: string): Promise<FirebaseAuthUser> {
@@ -61,6 +62,14 @@ export class FirebaseService {
     }, { merge: true });
   }
 
+  static async updateLeetcodeHandle(uid: string, handle: string): Promise<void> {
+    // Use setDoc with merge to update or create the document
+    await setDoc(doc(db, 'users', uid), { 
+      leetcodeHandle: handle,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  }
+
   static async saveUserStats(uid: string, stats: UserStats): Promise<void> {
     // This will automatically create the 'userStats' collection if it doesn't exist
     await setDoc(doc(db, 'userStats', uid), {
@@ -68,6 +77,24 @@ export class FirebaseService {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
+  }
+
+  static async updateUserStatsWithLeetcode(uid: string, codeforcesStats: UserStats, leetcodeHandle: string): Promise<void> {
+    try {
+      const leetcodeStats = await LeetCodeAPI.getUserStats(leetcodeHandle);
+      
+      const updatedStats: UserStats = {
+        ...codeforcesStats,
+        leetcodeHandle,
+        leetcodeProblemsSolved: leetcodeStats.totalSolved,
+        totalProblemsSolved: codeforcesStats.problemsSolved + leetcodeStats.totalSolved,
+        lastUpdated: Date.now()
+      };
+
+      await this.saveUserStats(uid, updatedStats);
+    } catch (error) {
+      throw new Error(`Failed to update LeetCode stats: ${error}`);
+    }
   }
 
   static async getAllUserStats(): Promise<UserStats[]> {

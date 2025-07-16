@@ -60,9 +60,12 @@ export interface Submission {
 export interface UserStats {
   handle: string;
   email: string;
+  leetcodeHandle?: string;
   maxRating: number;
   maxRank: string;
   problemsSolved: number;
+  leetcodeProblemsSolved: number;
+  totalProblemsSolved: number;
   averageRating: number;
   bestRank: number;
   currentRating: number;
@@ -73,6 +76,7 @@ export interface FirebaseUser {
   uid: string;
   email: string;
   codeforcesHandle?: string;
+  leetcodeHandle?: string;
   createdAt: number;
   isAdmin: boolean;
 }
