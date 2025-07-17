@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Users, Filter, RefreshCw, LogOut, ArrowUpDown, Versus } from 'lucide-react';
+import { Trophy, Users, Filter, RefreshCw, LogOut, ArrowUpDown, Users as Versus } from 'lucide-react';
 import { FirebaseService } from '../../services/firebaseService';
 import { UserComparison } from './UserComparison';
 import { UserStats } from '../../types';
