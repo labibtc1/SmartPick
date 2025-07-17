@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Users, Filter, RefreshCw, LogOut, ArrowUpDown } from 'lucide-react';
+import { Trophy, Users, Filter, RefreshCw, LogOut, ArrowUpDown, Versus } from 'lucide-react';
 import { FirebaseService } from '../../services/firebaseService';
+import { UserComparison } from './UserComparison';
 import { UserStats } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -9,6 +10,7 @@ type SortOrder = 'asc' | 'desc';
 
 export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [showComparison, setShowComparison] = useState(false);
   const [userStats, setUserStats] = useState<UserStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('maxRating');
@@ -97,6 +99,10 @@ export const AdminDashboard: React.FC = () => {
     await FirebaseService.signOut();
   };
 
+  if (showComparison) {
+    return <UserComparison onBack={() => setShowComparison(false)} />;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -141,6 +147,13 @@ export const AdminDashboard: React.FC = () => {
                   Codeforces Leaderboard ({userStats.length} users)
                 </h2>
               </div>
+              <button
+                onClick={() => setShowComparison(true)}
+                className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mr-4"
+              >
+                <Versus className="w-4 h-4 mr-2" />
+                Compare Users
+              </button>
               <button
                 onClick={loadUserStats}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
