@@ -54,6 +54,24 @@ export class FirebaseService {
     }
   }
 
+  static async getUserDataByEmail(email: string): Promise<FirebaseUser | null> {
+    try {
+      const usersCollection = collection(db, 'users');
+      const querySnapshot = await getDocs(usersCollection);
+      
+      for (const doc of querySnapshot.docs) {
+        const userData = doc.data() as FirebaseUser;
+        if (userData.email === email) {
+          return userData;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user data by email:', error);
+      return null;
+    }
+  }
+
   static async updateCodeforcesHandle(uid: string, handle: string): Promise<void> {
     // Use setDoc with merge to update or create the document
     await setDoc(doc(db, 'users', uid), { 

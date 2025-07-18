@@ -40,19 +40,29 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
 
   const loadGithubStats = async () => {
     setGithubLoading(true);
-    const users = [selectedUser1, selectedUser2].filter(Boolean) as UserStats[];
+    const newGithubStats: { [key: string]: GitHubStats } = { ...githubStats };
     
-    for (const user of users) {
-      // Find the user's GitHub handle from Firebase
+    // Load GitHub stats for both selected users
+    const usersToLoad = [selectedUser1, selectedUser2].filter(Boolean) as UserStats[];
+    
+    for (const user of usersToLoad) {
+      if (githubStats[user.handle]) {
+        continue; // Already loaded
+      }
+      
       try {
-        const userData = await FirebaseService.getUserData(user.handle); // Assuming handle maps to uid
+        // Get all user data to find the one with matching email
+        const allUsers = await FirebaseService.getAllUserStats();
+        const matchingUser = allUsers.find(u => u.handle === user.handle);
+        
+        if (!matchingUser) continue;
+        
+        // Find Firebase user by email to get GitHub handle
+        const userData = await FirebaseService.getUserDataByEmail(matchingUser.email);
         if (userData?.githubHandle && !githubStats[user.handle]) {
           try {
             const stats = await GitHubAPI.getUserStats(userData.githubHandle);
-            setGithubStats(prev => ({
-              ...prev,
-              [user.handle]: stats
-            }));
+            newGithubStats[user.handle] = stats;
           } catch (error) {
             console.warn(`Could not load GitHub stats for ${userData.githubHandle}:`, error);
           }
@@ -61,6 +71,8 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
         console.warn(`Could not load user data for ${user.handle}:`, error);
       }
     }
+    
+    setGithubStats(newGithubStats);
     setGithubLoading(false);
   };
 
