@@ -95,9 +95,6 @@ export class FirebaseService {
         ...codeforcesStats,
         leetcodeHandle,
         leetcodeProblemsSolved: leetcodeStats.totalSolved,
-        leetcodeEasy: leetcodeStats.easySolved,
-        leetcodeMedium: leetcodeStats.mediumSolved,
-        leetcodeHard: leetcodeStats.hardSolved,
         totalProblemsSolved: codeforcesStats.problemsSolved + leetcodeStats.totalSolved,
         lastUpdated: Date.now()
       };

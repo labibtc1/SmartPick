@@ -65,9 +65,6 @@ export interface UserStats {
   maxRank: string;
   problemsSolved: number;
   leetcodeProblemsSolved: number;
-  leetcodeEasy?: number;
-  leetcodeMedium?: number;
-  leetcodeHard?: number;
   totalProblemsSolved: number;
   averageRating: number;
   bestRank: number;
