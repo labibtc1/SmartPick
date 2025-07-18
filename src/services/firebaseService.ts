@@ -70,6 +70,14 @@ export class FirebaseService {
     }, { merge: true });
   }
 
+  static async updateGithubHandle(uid: string, handle: string): Promise<void> {
+    // Use setDoc with merge to update or create the document
+    await setDoc(doc(db, 'users', uid), { 
+      githubHandle: handle,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  }
+
   static async saveUserStats(uid: string, stats: UserStats): Promise<void> {
     // This will automatically create the 'userStats' collection if it doesn't exist
     await setDoc(doc(db, 'userStats', uid), {

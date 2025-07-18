@@ -3,18 +3,23 @@ import { User, Settings, Trophy, LogOut } from 'lucide-react';
 import { FirebaseService } from '../../services/firebaseService';
 import { CodeforcesAPI } from '../../services/codeforcesApi';
 import { LeetCodeAPI } from '../../services/leetcodeApi';
+import { GitHubAPI } from '../../services/githubApi';
 import { useAuth } from '../../hooks/useAuth';
 
 export const UserDashboard: React.FC = () => {
   const { user, userData } = useAuth();
   const [codeforcesHandle, setCodeforcesHandle] = useState('');
   const [leetcodeHandle, setLeetcodeHandle] = useState('');
+  const [githubHandle, setGithubHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [leetcodeLoading, setLeetcodeLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
   const [error, setError] = useState('');
   const [leetcodeError, setLeetcodeError] = useState('');
+  const [githubError, setGithubError] = useState('');
   const [success, setSuccess] = useState('');
   const [leetcodeSuccess, setLeetcodeSuccess] = useState('');
+  const [githubSuccess, setGithubSuccess] = useState('');
 
   const handleSubmitHandle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +79,30 @@ export const UserDashboard: React.FC = () => {
     }
   };
 
+  const handleSubmitGithubHandle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setGithubLoading(true);
+    setGithubError('');
+    setGithubSuccess('');
+
+    try {
+      // Validate GitHub handle
+      await GitHubAPI.getUserStats(githubHandle);
+      
+      // Update GitHub handle in Firebase
+      await FirebaseService.updateGithubHandle(user.uid, githubHandle);
+      
+      setGithubSuccess('GitHub handle updated successfully!');
+      setGithubHandle('');
+    } catch (error: any) {
+      setGithubError(error.message);
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await FirebaseService.signOut();
   };
@@ -118,6 +147,12 @@ export const UserDashboard: React.FC = () => {
               {userData?.leetcodeHandle 
                 ? `LeetCode: ${userData.leetcodeHandle}`
                 : 'Connect your LeetCode account'
+              }
+            </p>
+            <p className="text-gray-600">
+              {userData?.githubHandle 
+                ? `GitHub: ${userData.githubHandle}`
+                : 'Connect your GitHub account'
               }
             </p>
           </div>
@@ -204,15 +239,58 @@ export const UserDashboard: React.FC = () => {
                 </button>
               </form>
             </div>
+
+            <div className="border-t border-gray-200 pt-8">
+              <form onSubmit={handleSubmitGithubHandle} className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900">GitHub Account</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    GitHub Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={githubHandle}
+                    onChange={(e) => setGithubHandle(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your GitHub username"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Your GitHub username (e.g., octocat)
+                  </p>
+                </div>
+
+                {githubError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-red-700 text-sm">{githubError}</p>
+                  </div>
+                )}
+
+                {githubSuccess && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-green-700 text-sm">{githubSuccess}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={githubLoading}
+                  className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {githubLoading ? 'Updating...' : 'Update GitHub Handle'}
+                </button>
+              </form>
+            </div>
           </div>
 
           <div className="mt-8 p-6 bg-blue-50 rounded-lg">
             <h3 className="text-lg font-semibold text-blue-900 mb-2">How it works</h3>
             <ul className="text-blue-800 space-y-1 text-sm">
               <li>• Enter your Codeforces and LeetCode handles to connect your accounts</li>
+              <li>• Add your GitHub username to showcase your development activity</li>
               <li>• Your statistics will be automatically fetched and combined</li>
               <li>• Only the admin can view the leaderboard rankings</li>
-              <li>• Combined problem count includes both platforms</li>
+              <li>• Combined stats include all connected platforms</li>
             </ul>
           </div>
         </div>

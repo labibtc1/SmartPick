@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Target, Star, Award, Calendar, Code, Zap } from 'lucide-react';
+import { ArrowLeft, Trophy, Target, Star, Award, Calendar, Code, Zap, Github, Users, GitBranch } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { FirebaseService } from '../../services/firebaseService';
-import { UserStats } from '../../types';
+import { GitHubAPI } from '../../services/githubApi';
+import { UserStats, GitHubStats } from '../../types';
 
 interface UserComparisonProps {
   onBack: () => void;
@@ -9,13 +11,21 @@ interface UserComparisonProps {
 
 export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
   const [userStats, setUserStats] = useState<UserStats[]>([]);
+  const [githubStats, setGithubStats] = useState<{ [key: string]: GitHubStats }>({});
   const [selectedUser1, setSelectedUser1] = useState<UserStats | null>(null);
   const [selectedUser2, setSelectedUser2] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [githubLoading, setGithubLoading] = useState(false);
 
   useEffect(() => {
     loadUserStats();
   }, []);
+
+  useEffect(() => {
+    if (selectedUser1 || selectedUser2) {
+      loadGithubStats();
+    }
+  }, [selectedUser1, selectedUser2]);
 
   const loadUserStats = async () => {
     try {
@@ -26,6 +36,32 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadGithubStats = async () => {
+    setGithubLoading(true);
+    const users = [selectedUser1, selectedUser2].filter(Boolean) as UserStats[];
+    
+    for (const user of users) {
+      // Find the user's GitHub handle from Firebase
+      try {
+        const userData = await FirebaseService.getUserData(user.handle); // Assuming handle maps to uid
+        if (userData?.githubHandle && !githubStats[user.handle]) {
+          try {
+            const stats = await GitHubAPI.getUserStats(userData.githubHandle);
+            setGithubStats(prev => ({
+              ...prev,
+              [user.handle]: stats
+            }));
+          } catch (error) {
+            console.warn(`Could not load GitHub stats for ${userData.githubHandle}:`, error);
+          }
+        }
+      } catch (error) {
+        console.warn(`Could not load user data for ${user.handle}:`, error);
+      }
+    }
+    setGithubLoading(false);
   };
 
   const getRankColor = (rank: string) => {
@@ -67,6 +103,122 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
     } else {
       return stat1 < stat2 ? 'user1' : 'user2';
     }
+  };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  const GitHubStatsCard: React.FC<{ 
+    userHandle: string; 
+    stats: GitHubStats;
+    position: 'left' | 'right';
+  }> = ({ userHandle, stats, position }) => {
+    const languageData = Object.entries(stats.topLanguages).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    const contributionData = [
+      { name: 'Contributions', value: stats.contributions, fill: '#22c55e' },
+      { name: 'Public Repos', value: stats.publicRepos, fill: '#3b82f6' },
+      { name: 'Total Stars', value: stats.totalStars, fill: '#f59e0b' },
+      { name: 'Followers', value: stats.followers, fill: '#8b5cf6' }
+    ];
+
+    return (
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-2xl">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+            <Github className="w-8 h-8 text-gray-800" />
+          </div>
+          <h3 className="text-xl font-bold mb-2">{stats.username}</h3>
+          <p className="text-gray-300 text-sm">{stats.bio || 'GitHub Developer'}</p>
+          {stats.location && (
+            <p className="text-gray-400 text-xs mt-1">📍 {stats.location}</p>
+          )}
+        </div>
+
+        {/* GitHub Stats Overview */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-white/10 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold">{stats.publicRepos}</div>
+            <div className="text-xs text-gray-300">Repositories</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold">{stats.followers}</div>
+            <div className="text-xs text-gray-300">Followers</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold">{stats.totalStars}</div>
+            <div className="text-xs text-gray-300">Total Stars</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold">{stats.contributions}</div>
+            <div className="text-xs text-gray-300">Contributions</div>
+          </div>
+        </div>
+
+        {/* Top Languages Pie Chart */}
+        {languageData.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold mb-3 text-center">Top Languages</h4>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={languageData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={60}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {languageData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: 'none', 
+                      borderRadius: '8px',
+                      color: 'white'
+                    }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {languageData.slice(0, 3).map((lang, index) => (
+                <div key={lang.name} className="flex items-center text-xs">
+                  <div 
+                    className="w-3 h-3 rounded-full mr-1" 
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  ></div>
+                  <span>{lang.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Stats */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-300">Account Age</span>
+            <span>{new Date(stats.createdAt).getFullYear()}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-300">Following</span>
+            <span>{stats.following}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-300">Total Forks</span>
+            <span>{stats.totalForks}</span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const StatCard: React.FC<{ 
@@ -293,6 +445,77 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
                 }
               />
             </div>
+
+            {/* GitHub Stats Comparison */}
+            {(githubStats[selectedUser1.handle] || githubStats[selectedUser2.handle]) && (
+              <>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">GitHub Development Activity</h2>
+                  <p className="text-gray-600">Compare coding activity and contributions</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                  {githubStats[selectedUser1.handle] && (
+                    <GitHubStatsCard 
+                      userHandle={selectedUser1.handle}
+                      stats={githubStats[selectedUser1.handle]}
+                      position="left"
+                    />
+                  )}
+                  {githubStats[selectedUser2.handle] && (
+                    <GitHubStatsCard 
+                      userHandle={selectedUser2.handle}
+                      stats={githubStats[selectedUser2.handle]}
+                      position="right"
+                    />
+                  )}
+                </div>
+
+                {/* GitHub Comparison Chart */}
+                {githubStats[selectedUser1.handle] && githubStats[selectedUser2.handle] && (
+                  <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">GitHub Stats Comparison</h3>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={[
+                            {
+                              metric: 'Repositories',
+                              [selectedUser1.handle]: githubStats[selectedUser1.handle].publicRepos,
+                              [selectedUser2.handle]: githubStats[selectedUser2.handle].publicRepos,
+                            },
+                            {
+                              metric: 'Followers',
+                              [selectedUser1.handle]: githubStats[selectedUser1.handle].followers,
+                              [selectedUser2.handle]: githubStats[selectedUser2.handle].followers,
+                            },
+                            {
+                              metric: 'Stars Received',
+                              [selectedUser1.handle]: githubStats[selectedUser1.handle].totalStars,
+                              [selectedUser2.handle]: githubStats[selectedUser2.handle].totalStars,
+                            },
+                            {
+                              metric: 'Contributions',
+                              [selectedUser1.handle]: githubStats[selectedUser1.handle].contributions,
+                              [selectedUser2.handle]: githubStats[selectedUser2.handle].contributions,
+                            },
+                          ]}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="metric" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey={selectedUser1.handle} fill="#3b82f6" />
+                          <Bar dataKey={selectedUser2.handle} fill="#ef4444" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Detailed Comparison */}
             <div className="bg-white rounded-xl shadow-lg p-6">

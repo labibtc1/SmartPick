@@ -77,6 +77,22 @@ export interface FirebaseUser {
   email: string;
   codeforcesHandle?: string;
   leetcodeHandle?: string;
+  githubHandle?: string;
   createdAt: number;
   isAdmin: boolean;
+}
+
+export interface GitHubStats {
+  username: string;
+  publicRepos: number;
+  followers: number;
+  following: number;
+  totalStars: number;
+  totalForks: number;
+  contributions: number;
+  topLanguages: { [key: string]: number };
+  createdAt: string;
+  bio?: string;
+  location?: string;
+  company?: string;
 }
