@@ -467,20 +467,41 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                  {githubStats[selectedUser1.handle] && (
+                  <div>
+                    {githubStats[selectedUser1.handle] ? (
                     <GitHubStatsCard 
                       userHandle={selectedUser1.handle}
                       stats={githubStats[selectedUser1.handle]}
                       position="left"
                     />
-                  )}
-                  {githubStats[selectedUser2.handle] && (
+                    ) : (
+                      <div className="bg-gray-100 rounded-2xl p-6 text-center h-full flex items-center justify-center">
+                        <div>
+                          <Github className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500">No GitHub data available</p>
+                          <p className="text-sm text-gray-400">{selectedUser1.handle}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    {githubStats[selectedUser2.handle] ? (
                     <GitHubStatsCard 
                       userHandle={selectedUser2.handle}
                       stats={githubStats[selectedUser2.handle]}
                       position="right"
                     />
-                  )}
+                    ) : (
+                      <div className="bg-gray-100 rounded-2xl p-6 text-center h-full flex items-center justify-center">
+                        <div>
+                          <Github className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500">No GitHub data available</p>
+                          <p className="text-sm text-gray-400">{selectedUser2.handle}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* GitHub Comparison Chart */}
@@ -523,6 +544,26 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
                           <Bar dataKey={selectedUser2.handle} fill="#ef4444" />
                         </BarChart>
                       </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* GitHub Stats Only Available for One User */}
+                {(githubStats[selectedUser1.handle] || githubStats[selectedUser2.handle]) && 
+                 !(githubStats[selectedUser1.handle] && githubStats[selectedUser2.handle]) && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
+                    <div className="text-center">
+                      <div className="text-yellow-600 mb-2">
+                        <Github className="w-8 h-8 mx-auto" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                        Partial GitHub Comparison
+                      </h3>
+                      <p className="text-yellow-700">
+                        Only one user has connected their GitHub account. 
+                        {!githubStats[selectedUser1.handle] && ` ${selectedUser1.handle} needs to add their GitHub handle.`}
+                        {!githubStats[selectedUser2.handle] && ` ${selectedUser2.handle} needs to add their GitHub handle.`}
+                      </p>
                     </div>
                   </div>
                 )}
