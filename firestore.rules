@@ -13,18 +13,14 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Allow admin to read all userStats for leaderboard
+    // Allow authenticated users to read all userStats for comparison
     match /userStats/{document=**} {
-      allow read: if request.auth != null && 
-                     exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow read: if request.auth != null;
     }
     
-    // Allow admin to read all users
+    // Allow authenticated users to read all users for finding by email
     match /users/{document=**} {
-      allow read: if request.auth != null && 
-                     exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow read: if request.auth != null;
     }
   }
 }

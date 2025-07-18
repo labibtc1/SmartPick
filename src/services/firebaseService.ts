@@ -67,7 +67,7 @@ export class FirebaseService {
       }
       return null;
     } catch (error) {
-      console.error('Error getting user data by email:', error);
+      console.warn('Error getting user data by email:', error);
       return null;
     }
   }
@@ -129,11 +129,21 @@ export class FirebaseService {
       const querySnapshot = await getDocs(collection(db, 'userStats'));
       return querySnapshot.docs.map(doc => doc.data() as UserStats);
     } catch (error) {
-      console.error('Error getting all user stats:', error);
+      console.warn('Error getting all user stats:', error);
       return [];
     }
   }
 
+  static async getAllUsers(): Promise<FirebaseUser[]> {
+    try {
+      const usersCollection = collection(db, 'users');
+      const querySnapshot = await getDocs(usersCollection);
+      return querySnapshot.docs.map(doc => doc.data() as FirebaseUser);
+    } catch (error) {
+      console.warn('Error getting all users:', error);
+      return [];
+    }
+  }
   static async deleteUserStats(uid: string): Promise<void> {
     await deleteDoc(doc(db, 'userStats', uid));
   }

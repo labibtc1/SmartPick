@@ -18,7 +18,7 @@ export const useAuth = () => {
           const userData = await FirebaseService.getUserData(firebaseUser.uid);
           setUserData(userData);
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.warn('Error fetching user data:', error);
           // If user document doesn't exist, create it
           if (firebaseUser.email) {
             try {
@@ -28,10 +28,11 @@ export const useAuth = () => {
                 createdAt: Date.now(),
                 isAdmin: firebaseUser.email === 'admin@gmail.com'
               };
-              await FirebaseService.signUp(firebaseUser.email, ''); // This will create the user document
+              // Create user document directly
+              await setDoc(doc(db, 'users', firebaseUser.uid), newUserData);
               setUserData(newUserData);
             } catch (createError) {
-              console.error('Error creating user document:', createError);
+              console.warn('Error creating user document:', createError);
             }
           }
         }

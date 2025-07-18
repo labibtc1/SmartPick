@@ -51,14 +51,8 @@ export const UserComparison: React.FC<UserComparisonProps> = ({ onBack }) => {
       }
       
       try {
-        // Get all user data to find the one with matching email
-        const allUsers = await FirebaseService.getAllUserStats();
-        const matchingUser = allUsers.find(u => u.handle === user.handle);
-        
-        if (!matchingUser) continue;
-        
         // Find Firebase user by email to get GitHub handle
-        const userData = await FirebaseService.getUserDataByEmail(matchingUser.email);
+        const userData = await FirebaseService.getUserDataByEmail(user.email);
         if (userData?.githubHandle && !githubStats[user.handle]) {
           try {
             const stats = await GitHubAPI.getUserStats(userData.githubHandle);
