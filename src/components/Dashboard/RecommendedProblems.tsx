@@ -101,8 +101,39 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       const uniqueTags = Array.from(tagCounts.keys()).sort();
       setAllTags(uniqueTags);
 
+      // create a new array named unsolvedproblems, 
+      //how to create this array? 
+      //create an array issolved, than mark all problems in ratingFilteredProblems as true
+      //fetch all problems from codeforces and store only the problems with issolved = false in
+      //unsolvedproblems array
+      //how to fetch all problems? use this api  
+      //https://codeforces.com/api/problemset.problems
+
+      // Step 4.5: Create an array of solved problem keys
+const isSolved = new Set(
+  ratingFilteredProblems.map(p => `${p.contestId}-${p.index}`)
+);
+
+// Fetch all Codeforces problems
+const allProblemsResponse = await fetch('https://codeforces.com/api/problemset.problems');
+const allProblemsData = await allProblemsResponse.json();
+
+if (allProblemsData.status !== 'OK') {
+  throw new Error('Failed to fetch all problems from Codeforces');
+}
+
+// Extract all problems
+const allProblems: Problem[] = allProblemsData.result.problems;
+
+// Filter to only include problems not yet solved and rating within range
+const unsolvedProblems = allProblems.filter(problem => {
+  const key = `${problem.contestId}-${problem.index}`;
+  return !isSolved.has(key) ;
+});
+
+
       // Step 5 & 6: Calculate score for each problem and sort
-      const problemsWithScores: ProblemWithScore[] = ratingFilteredProblems.map(problem => {
+      const problemsWithScores: ProblemWithScore[] = unsolvedProblems.map(problem => {
         const score = problem.tags.length > 0 
           ? problem.tags.reduce((sum, tag) => sum + (tagCounts.get(tag) || 0), 0)
           : 1; // Give problems without tags a base score of 1
