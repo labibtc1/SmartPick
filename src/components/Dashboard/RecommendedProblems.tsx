@@ -75,7 +75,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       const ratingFilteredProblems = Array.from(problemMap.values()).filter(problem => 
         //!problem.rating || 
         problem.rating <= peakRating + 200
-        && problem.rating >= peakRating
+        //&& problem.rating >= peakRating
         
       );
 
