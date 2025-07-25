@@ -57,6 +57,17 @@ export interface Submission {
   points?: number;
 }
 
+export interface Problem {
+  contestId: number;
+  problemsetName?: string;
+  index: string;
+  name: string;
+  type: string;
+  points?: number;
+  rating?: number;
+  tags: string[];
+}
+
 export interface UserStats {
   handle: string;
   email: string;
