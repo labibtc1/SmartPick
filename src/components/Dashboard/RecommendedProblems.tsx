@@ -72,21 +72,21 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       });
 
       // Step 3: Filter problems by peak rating + 200 (include problems without rating)
-      const ratingFilteredProblems = Array.from(problemMap.values()).filter(problem => 
+      const solvedProblems = Array.from(problemMap.values()).filter(problem => 
         problem.rating 
        // problem.rating <= peakRating + 200
         //&& problem.rating >= peakRating
         
       );
 
-      if (ratingFilteredProblems.length === 0) {
+      if (solvedProblems.length === 0) {
         setError(`No problems found for user ${selectedHandle}. Make sure the handle is correct and the user has solved some problems.`);
         return;
       }
 
       // Step 4: Count tags across all filtered problems
       const tagCounts = new Map<string, number>();
-      ratingFilteredProblems.forEach(problem => {
+      solvedProblems.forEach(problem => {
         problem.tags.forEach(tag => {
           tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
         });
@@ -95,7 +95,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       // Debug logging
       console.log(`Found ${validSubmissions.length} valid submissions`);
       console.log(`Found ${problemMap.size} unique problems`);
-      console.log(`Found ${ratingFilteredProblems.length} problems after rating filter`);
+      console.log(`Found ${solvedProblems.length} problems after rating filter`);
       console.log(`Peak rating: ${peakRating}, filter: <= ${peakRating + 200}`);
       // Extract all unique tags for filtering
       const uniqueTags = Array.from(tagCounts.keys()).sort();
@@ -111,7 +111,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
 
       // Step 4.5: Create an array of solved problem keys
 const isSolved = new Set(
-  ratingFilteredProblems.map(p => `${p.contestId}-${p.index}`)
+  solvedProblems.map(p => `${p.contestId}-${p.index}`)
 );
 
 // Fetch all Codeforces problems
