@@ -51,7 +51,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
     try {
       // Get user info to find current rating
       const userInfo = await CodeforcesAPI.getUserInfo(selectedHandle);
-      const currentRating = userInfo.rating || 0;
+      const peakRating = userInfo.maxRating || 0;
 
       // Get user submissions
       const submissions = await CodeforcesAPI.getUserSubmissions(selectedHandle, 10000);
@@ -70,13 +70,13 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
         }
       });
 
-      // Step 3: Filter problems by current rating
+      // Step 3: Filter problems by peak rating + 200
       const ratingFilteredProblems = Array.from(problemMap.values()).filter(problem => 
-        problem.rating === currentRating
+        problem.rating && problem.rating <= peakRating + 200
       );
 
       if (ratingFilteredProblems.length === 0) {
-        setError(`No problems found with rating ${currentRating} for user ${selectedHandle}`);
+        setError(`No problems found with rating <= ${peakRating + 200} for user ${selectedHandle}`);
         return;
       }
 
@@ -202,7 +202,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
                 <option value="">Select a user...</option>
                 {userStats.map(user => (
                   <option key={user.handle} value={user.handle}>
-                    {user.handle} (Rating: {user.currentRating})
+                    {user.handle} (Peak Rating: {user.maxRating})
                   </option>
                 ))}
               </select>
@@ -230,7 +230,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-blue-800 text-sm">
                 <strong>How it works:</strong> We analyze {selectedHandle}'s solved problems to find patterns in their preferred tags, 
-                then recommend problems at their current rating level that match those preferences.
+                then recommend problems with rating ≤ peak rating + 200 that match those preferences.
               </p>
             </div>
           )}
@@ -367,7 +367,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
             <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">Select a user to get problem recommendations</p>
             <p className="text-gray-400 text-sm mt-2">
-              We'll analyze their solving patterns and suggest problems at their current rating level.
+              We'll analyze their solving patterns and suggest problems with rating ≤ peak rating + 200.
             </p>
           </div>
         )}
