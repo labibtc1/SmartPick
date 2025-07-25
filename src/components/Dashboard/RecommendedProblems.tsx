@@ -74,7 +74,7 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       // Step 3: Filter problems by peak rating + 200 (include problems without rating)
       const ratingFilteredProblems = Array.from(problemMap.values()).filter(problem => 
         //!problem.rating || 
-        problem.rating <= peakRating + 200
+       // problem.rating <= peakRating + 200
         //&& problem.rating >= peakRating
         
       );
@@ -128,7 +128,8 @@ const allProblems: Problem[] = allProblemsData.result.problems;
 // Filter to only include problems not yet solved and rating within range
 const unsolvedProblems = allProblems.filter(problem => {
   const key = `${problem.contestId}-${problem.index}`;
-  return !isSolved.has(key) ;
+  return !isSolved.has(key) && 
+    (!problem.rating && problem.rating >= peakRating && problem.rating <= peakRating + 200);
 });
 
 
