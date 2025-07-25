@@ -56,9 +56,10 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       // Get user submissions
       const submissions = await CodeforcesAPI.getUserSubmissions(selectedHandle, 10000);
 
-      // Step 1: Filter submissions with points > 0
+      // Step 1: Filter submissions with points > 0 OR verdict === 'OK'
       const validSubmissions = submissions.filter(submission => 
-        submission.points !== undefined && submission.points > 0
+        (submission.points !== undefined && submission.points > 0) || 
+        submission.verdict === 'OK'
       );
 
       // Step 2: Extract unique problems from submissions
@@ -70,13 +71,13 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
         }
       });
 
-      // Step 3: Filter problems by peak rating + 200
+      // Step 3: Filter problems by peak rating + 200 (include problems without rating)
       const ratingFilteredProblems = Array.from(problemMap.values()).filter(problem => 
-        problem.rating && problem.rating <= peakRating + 200
+        !problem.rating || problem.rating <= peakRating + 200
       );
 
       if (ratingFilteredProblems.length === 0) {
-        setError(`No problems found with rating <= ${peakRating + 200} for user ${selectedHandle}`);
+        setError(`No problems found for user ${selectedHandle}. Make sure the handle is correct and the user has solved some problems.`);
         return;
       }
 
@@ -88,13 +89,20 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
         });
       });
 
+      // Debug logging
+      console.log(`Found ${validSubmissions.length} valid submissions`);
+      console.log(`Found ${problemMap.size} unique problems`);
+      console.log(`Found ${ratingFilteredProblems.length} problems after rating filter`);
+      console.log(`Peak rating: ${peakRating}, filter: <= ${peakRating + 200}`);
       // Extract all unique tags for filtering
       const uniqueTags = Array.from(tagCounts.keys()).sort();
       setAllTags(uniqueTags);
 
       // Step 5 & 6: Calculate score for each problem and sort
       const problemsWithScores: ProblemWithScore[] = ratingFilteredProblems.map(problem => {
-        const score = problem.tags.reduce((sum, tag) => sum + (tagCounts.get(tag) || 0), 0);
+        const score = problem.tags.length > 0 
+          ? problem.tags.reduce((sum, tag) => sum + (tagCounts.get(tag) || 0), 0)
+          : 1; // Give problems without tags a base score of 1
         const link = `https://codeforces.com/contest/${problem.contestId}/problem/${problem.index}`;
         
         return {
@@ -108,8 +116,10 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
       // Sort by score in descending order
       problemsWithScores.sort((a, b) => b.score - a.score);
 
+      console.log(`Generated ${problemsWithScores.length} recommendations`);
       setRecommendedProblems(problemsWithScores);
     } catch (error: any) {
+      console.error('Error analyzing problems:', error);
       setError(`Failed to analyze problems: ${error.message}`);
     } finally {
       setAnalyzing(false);
