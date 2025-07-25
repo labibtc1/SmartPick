@@ -129,7 +129,7 @@ const allProblems: Problem[] = allProblemsData.result.problems;
 const unsolvedProblems = allProblems.filter(problem => {
   const key = `${problem.contestId}-${problem.index}`;
   return !isSolved.has(key) && 
-    (!problem.rating && problem.rating >= peakRating && problem.rating <= peakRating + 200);
+    (problem.rating && problem.rating >= peakRating && problem.rating <= peakRating + 200);
 });
 
 
