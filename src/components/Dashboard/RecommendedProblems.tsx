@@ -58,8 +58,8 @@ export const RecommendedProblems: React.FC<RecommendedProblemsProps> = ({ onBack
 
       // Step 1: Filter submissions with points > 0 OR verdict === 'OK'
       const validSubmissions = submissions.filter(submission => 
-        (submission.points !== undefined && submission.points > 0) || 
-        submission.verdict === 'OK'
+        (submission.points !== undefined && submission.points > 0) 
+        //||  submission.verdict === 'OK'
       );
 
       // Step 2: Extract unique problems from submissions
